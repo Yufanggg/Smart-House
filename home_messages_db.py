@@ -1,13 +1,11 @@
 from sqlalchemy import create_engine, MetaData, text, Table, Column, Float, Integer, String, PrimaryKeyConstraint, select, inspect
 import pandas as pd
-
+from sqlite3 import Error
 """
 This file defines the HomeMessagesDB-class to interact with SQLite db.
 
 TO DO:
-- prettify __repr__ method
 - method to insert data (from df) into db-table
-- method to delete tables and / or entire db
 - error handling
 """
 
@@ -21,9 +19,16 @@ class HomeMessagesDB:
 
     def __repr__(self):
         """ More informative __repr__. """
+        self.metadata.reflect(bind=self.engine)
 
-        return (f"Connected to: {self.url}, tables: {self.metadata.tables.keys()}")
-        # To do: nicer printing + list columns and observations for each table in db
+        preamble = (f"A HomeMessagesDB-class instance. Connected to: {self.url} \n\nTABLES \t\tCOLUMNS\n\n")
+
+        table_info = (
+            "\n".join(f"{i :<10}\t{[column.key for column in self.metadata.tables[i].c]}" for i in self.metadata.tables.keys())
+            )
+
+        return preamble+table_info
+
 
     def query(self, stmt, rawSQL: bool = False, as_df: bool = False):
         """ 
@@ -65,23 +70,48 @@ class HomeMessagesDB:
         - name (str): name of to-be-created table
         - colums (list): list of columns in table (e.g. ['a', 'b'])
         - columnTypes (list): list of SQLAlchemy data types (e.g. [Float, String])
+        - primaryKey (str): name of column to be labeled as primary key
         """
-        if not inspect(self.engine).has_table(name):
-            print(f"Creating {name} table")
+        try:
+            if inspect(self.engine).has_table(name):
+                print(f"Database already has table named {name}")
 
-            table = Table(
-                name,
-                self.metadata,
-                *[Column(name, type) for name, type in zip(columns, columnTypes)],
-                PrimaryKeyConstraint(primaryKey)      
-            )
-            self.metadata.create_all(self.engine)
-        else:
-            print(f"Database already has table named {name}")
+            else:
+                print(f"Creating {name} table")
 
-    def delete_table():
-        # add options to delete single tables and/or entire database?
-        ...
+                table = Table(
+                    name,
+                    self.metadata,
+                    *[Column(name, type) for name, type in zip(columns, columnTypes)],
+                    PrimaryKeyConstraint(primaryKey)      
+                )
+                self.metadata.create_all(self.engine)
+                self.metadata.reflect(bind=self.engine)
+
+        except Error as e:
+            print(e)
+
+    def delete_table(self, name):
+        """
+        Delete a table from database.
+
+        Usage: .delete_table(name)
+
+        Params:
+        ------
+        - name (str): name of to-be-deleted table
+        """
+        try:
+            if not inspect(self.engine).has_table(name):
+                print(f"Table named {name} not in database.")
+            else:
+                with self.engine.connect() as conn:
+                    conn.execute(text(f"DROP TABLE IF EXISTS {name}"))
+                    self.metadata.clear() # seems necessary, otherwise dropped table seems to stick in metadata (https://github.com/sqlalchemy/sqlalchemy/issues/5112)
+                    self.metadata.reflect(bind=self.engine)
+
+        except Error as e:
+            print(e)
 
     # ---- BROKEN? ------
     # def insert_df(self, df: pd.DataFrame, table: str, if_exists: str, dtype: dict):
