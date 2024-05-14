@@ -3,37 +3,85 @@ import gzip
 import pandas as pd
 from sqlalchemy.dialects.sqlite import insert
 from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect, Table, Column, Integer, Float, MetaData
 
-def insert_custom(table, conn, keys, data_iter):
+# self-defined class
+from home_messages_db import HomeMessagesDB
 
 
-    data = [dict(zip(keys, row)) for row in data_iter]
-    stmt = (
-        insert(table.table)
-        .values(data)
-    )
-    stmt = stmt.on_duplicate_key_update(b=stmt.inserted.b, c=stmt.inserted.c)
-    result = conn.execute(stmt)
-    return result.rowcount
+
+
+def define_table(columns: list, name: str, metadata: MetaData):
+    Table(name, metadata,
+          Column('time', Integer(), primary_key=True),
+          Column(columns[0], Float(), nullable=True),
+          Column(columns[1], Float(), nullable=True),
+          )
+    return metadata
+
+    metadata = MetaData()
+
+    if not inspect(engine).has_table(TABLE_T1_NAME):
+        print(f"Creating {TABLE_T1_NAME} table")
+        metadata = define_table(TABLE_T1_COLUMNS, TABLE_T1_NAME, metadata)
+        metadata.create_all(engine)
+
+    if not inspect(engine).has_table(TABLE_T2_NAME):
+        print(f"Creating {TABLE_T2_NAME} table")
+        metadata = define_table(TABLE_T2_COLUMNS, TABLE_T2_NAME, metadata)
+        metadata.create_all(engine)
+
+    with engine.connect() as conn:
+        t1.to_sql(name=TABLE_T1_NAME, con=conn, if_exists="replace", method=insert_custom)
+        t2.to_sql(name=TABLE_T2_NAME, con=conn, if_exists="replace", method=insert_custom)
+
+
+
+def insert_df(self, df: pd.DataFrame, table: str, if_exists: str = 'append'):
+        """
+        Inserts pd.dataframe into db-table.
+        
+        Params:
+        ------
+        - df (pd.Dataframe): df to be inserted
+        - table (str): name of table 
+        - if_exists (str): 'fail', 'replace', 'append'
+        - dtype (dict): dict of column('key'), SQLAlchemy datatype('value')-pairs (e.g. {'time': Integer()} )
+        """
+        def insert_custom(table, conn, keys, data_iter):
+            data = [dict(zip(keys, row)) for row in data_iter]
+            stmt = table.insert().values(data)
+            stmt = stmt.on_conflict_do_noting()
+            #stmt = stmt.on_duplicate_key_update(b=stmt.inserted.b, c=stmt.inserted.c)
+            result = conn.execute(stmt)
+            print(result.rowcount)
+            return result.rowcount
+
+        with self.engine.connect() as conn:
+            df.to_sql(name = table, con=conn, if_exists= if_exists, method=insert_custom)
+
 
 
 def main(db_url: str, filepath: str):
 
     # read the file into pandas
-    df = pd.read_csv(gzip.open(filepath, 'rb'))
+    df = pd.read_csv(gzip.open(filepath, 'rb'),index_col= False)
 
     # convert time to timestamp and set as index
-    df.index = pd.to_datetime(df['time']).astype(int).div(10**9).astype(int)
+    df.index = pd.to_datetime(df['time']).astype('int64').div(10**9).astype(int)
+    print(df.head(10))
 
-    # split the tables
-    t1 = df[['Electricity imported T1', 'Electricity exported T1']]
-    t2 = df[['Electricity imported T2', 'Electricity exported T2']]
+    #initalize the db class
+    mydb = HomeMessagesDB('db/pythondqlite.db')
+    Table_Name = 'p1g'
 
-    # use sqlalchemy for custom insert logic
-    engine = create_engine('db/pythondqlite.db')
-    with engine.connect() as conn:
-        t1.to_sql(name="p1e_t1", con=conn, if_exists="append", method=insert_custom)
-        t2.to_sql(name="p1e_t1", con=conn, if_exists="append", method=insert_custom)
+    'some_table', metadata,
+    Column('id', Integer, primary_key=True),
+    Column('data', Integer, nullable=False,
+           sqlite_on_conflict_not_null='FAIL')
+)
+    mydb.insert_df(df = df, table = "p1g")
+
 
 
 if __name__ == '__main__':
@@ -48,7 +96,7 @@ if __name__ == '__main__':
         print("  -h, --help    Show this help message")
         print("  -d DBURL insert into the project database (DBURL is a SQLAlchemy database URL)")
         print(" example:")
-        print("p1e.py -d sqlite:///myhome.db P1e-2022-12-01-2023-01-10.csv.gz")
+        print("p1g.py -d sqlite:///myhome.db P1g-2022-01-01-2022-07-10.csv.gz")
 
     if sys.argv[1] == '-d':
         if not sys.argv[2] or not sys.argv[3]:
