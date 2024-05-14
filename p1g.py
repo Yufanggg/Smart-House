@@ -4,83 +4,44 @@ import pandas as pd
 from sqlalchemy.dialects.sqlite import insert
 from sqlalchemy import create_engine
 from sqlalchemy import create_engine, inspect, Table, Column, Integer, Float, MetaData
-
+import os
 # self-defined class
 from home_messages_db import HomeMessagesDB
 
 
 
-
-def define_table(columns: list, name: str, metadata: MetaData):
-    Table(name, metadata,
-          Column('time', Integer(), primary_key=True),
-          Column(columns[0], Float(), nullable=True),
-          Column(columns[1], Float(), nullable=True),
-          )
-    return metadata
-
-    metadata = MetaData()
-
-    if not inspect(engine).has_table(TABLE_T1_NAME):
-        print(f"Creating {TABLE_T1_NAME} table")
-        metadata = define_table(TABLE_T1_COLUMNS, TABLE_T1_NAME, metadata)
-        metadata.create_all(engine)
-
-    if not inspect(engine).has_table(TABLE_T2_NAME):
-        print(f"Creating {TABLE_T2_NAME} table")
-        metadata = define_table(TABLE_T2_COLUMNS, TABLE_T2_NAME, metadata)
-        metadata.create_all(engine)
-
-    with engine.connect() as conn:
-        t1.to_sql(name=TABLE_T1_NAME, con=conn, if_exists="replace", method=insert_custom)
-        t2.to_sql(name=TABLE_T2_NAME, con=conn, if_exists="replace", method=insert_custom)
-
-
-
-def insert_df(self, df: pd.DataFrame, table: str, if_exists: str = 'append'):
-        """
-        Inserts pd.dataframe into db-table.
-        
-        Params:
-        ------
-        - df (pd.Dataframe): df to be inserted
-        - table (str): name of table 
-        - if_exists (str): 'fail', 'replace', 'append'
-        - dtype (dict): dict of column('key'), SQLAlchemy datatype('value')-pairs (e.g. {'time': Integer()} )
-        """
-        def insert_custom(table, conn, keys, data_iter):
-            data = [dict(zip(keys, row)) for row in data_iter]
-            stmt = table.insert().values(data)
-            stmt = stmt.on_conflict_do_noting()
-            #stmt = stmt.on_duplicate_key_update(b=stmt.inserted.b, c=stmt.inserted.c)
-            result = conn.execute(stmt)
-            print(result.rowcount)
-            return result.rowcount
-
-        with self.engine.connect() as conn:
-            df.to_sql(name = table, con=conn, if_exists= if_exists, method=insert_custom)
-
-
-
 def main(db_url: str, filepath: str):
 
-    # read the file into pandas
-    df = pd.read_csv(gzip.open(filepath, 'rb'),index_col= False)
+    if os.path.isdir(filepath): # if the filepath is a dictionary, update the filepath
+        files = os.listdir(filepath)
+        filepath = [filepath + file for file in files] # updated filepath, which is a list
+
+        df = [pd.read_csv(gzip.open(file, 'rb'),index_col= False) for file in filepath]
+
+        # df = pd.read_csv(gzip.open(filepath[0], 'rb'),index_col= False) 
+        
+
+        
+        # check whether all dataframe in df has identical columns, name & number
+        if all([set(df[0].columns) == set(dataframe.columns) for dataframe in df]):
+            df = pd.concat(df)
+        else:
+            raise ValueError("Sorry, different files have different columns")
+    
+    else:
+        # read the file into pandas
+        df = pd.read_csv(gzip.open(filepath, 'rb'),index_col= False)
 
     # convert time to timestamp and set as index
-    df.index = pd.to_datetime(df['time']).astype('int64').div(10**9).astype(int)
-    print(df.head(10))
+    df['time'] = pd.to_datetime(df['time']).astype('int64').div(10**9).astype(int)
+
+    # print(df.head(10))
+    # print(df.shape)
 
     #initalize the db class
     mydb = HomeMessagesDB('db/pythondqlite.db')
-    Table_Name = 'p1g'
-
-    'some_table', metadata,
-    Column('id', Integer, primary_key=True),
-    Column('data', Integer, nullable=False,
-           sqlite_on_conflict_not_null='FAIL')
-)
-    mydb.insert_df(df = df, table = "p1g")
+    Keys = {"time": Integer(), "Total gas used": Float()}
+    mydb.insert_df(df = df, table = "p1g", dtype = Keys, if_exists = "replace")
 
 
 

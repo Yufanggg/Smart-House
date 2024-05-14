@@ -115,7 +115,7 @@ class HomeMessagesDB:
             print(e)
 
 
-    def insert_df(self, df: pd.DataFrame, table: str, if_exists: str = 'append'):
+    def insert_df(self, df: pd.DataFrame, table: str, dtype:dict, if_exists: str = 'append'):
         """
         Inserts pd.dataframe into db-table.
         
@@ -128,15 +128,19 @@ class HomeMessagesDB:
         """
         def insert_custom(table, conn, keys, data_iter):
             data = [dict(zip(keys, row)) for row in data_iter]
-            stmt = table.insert().values(data)
-            stmt = stmt.on_conflict_do_noting()
-            #stmt = stmt.on_duplicate_key_update(b=stmt.inserted.b, c=stmt.inserted.c)
+            stmt = insert(table.table).values(data)
+            stmt = stmt.on_conflict_do_nothing()
             result = conn.execute(stmt)
-            print(result.rowcount)
-            return result.rowcount
 
+            return result.rowcount
+        
         with self.engine.connect() as conn:
-            df.to_sql(name = table, con=conn, if_exists= if_exists, method=insert_custom)
+            df.to_sql(name = table, con=conn, index=False, 
+                  if_exists= if_exists, method=insert_custom,
+                  dtype = dtype, chunksize=500)
+            
+
+
 
 
 
