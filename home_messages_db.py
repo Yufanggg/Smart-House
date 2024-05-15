@@ -59,7 +59,7 @@ class HomeMessagesDB:
         else: 
             return result
         
-    def create_table(self, name: str, columns: list, columnTypes: list, primaryKey: str):
+    def create_table(self, name: str, columns: list, columnTypes: list, primaryKey = None):
         """
         Define and create table in database.
 
@@ -78,15 +78,25 @@ class HomeMessagesDB:
 
             else:
                 print(f"Creating {name} table")
-
-                table = Table(
-                    name,
-                    self.metadata,
-                    *[Column(name, type) for name, type in zip(columns, columnTypes)],
-                    PrimaryKeyConstraint(primaryKey)      
-                )
-                self.metadata.create_all(self.engine)
-                self.metadata.reflect(bind=self.engine)
+                
+                if primaryKey:
+                    table = Table(
+                        name,
+                        self.metadata,
+                        *[Column(name, type) for name, type in zip(columns, columnTypes)],
+                        PrimaryKeyConstraint(primaryKey)      
+                    )
+                    self.metadata.create_all(self.engine)
+                    self.metadata.reflect(bind=self.engine)
+                
+                else:
+                    table = Table(
+                        name,
+                        self.metadata,
+                        *[Column(name, type) for name, type in zip(columns, columnTypes)]
+                        )
+                    self.metadata.create_all(self.engine)
+                    self.metadata.reflect(bind=self.engine) 
 
         except Error as e:
             print(e)
