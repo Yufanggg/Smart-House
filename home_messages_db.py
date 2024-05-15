@@ -113,20 +113,29 @@ class HomeMessagesDB:
         except Error as e:
             print(e)
 
-    # ---- BROKEN? ------
-    # def insert_df(self, df: pd.DataFrame, table: str, if_exists: str, dtype: dict):
-    #     """
-    #     Inserts pd.dataframe into db-table.
+    def insert_df(self, df: pd.DataFrame, table: str, dtype:dict, if_exists: str = 'append'):
+        """
+        Inserts pd.dataframe into db-table.
         
-    #     Params:
-    #     ------
-    #     - df (pd.Dataframe): df to be inserted
-    #     - table (str): name of table 
-    #     - if_exists (str): 'fail', 'replace', 'append'
-    #     - dtype (dict): dict of column('key'), SQLAlchemy datatype('value')-pairs (e.g. {'time': Integer()} )
-    #     """
-    #     df.to_sql(table, self.engine, if_exists=if_exists, dtype=dtype)
+        Params:
+        ------
+        - df (pd.Dataframe): df to be inserted
+        - table (str): name of table 
+        - if_exists (str): 'fail', 'replace', 'append'
+        - dtype (dict): dict of column('key'), SQLAlchemy datatype('value')-pairs (e.g. {'time': Integer()} )
+        """
+        def insert_custom(table, conn, keys, data_iter):
+            data = [dict(zip(keys, row)) for row in data_iter]
+            stmt = insert(table.table).values(data)
+            stmt = stmt.on_conflict_do_nothing()
+            result = conn.execute(stmt)
 
+            return result.rowcount
+        
+        with self.engine.connect() as conn:
+            df.to_sql(name = table, con=conn, index=False, 
+                  if_exists= if_exists, method=insert_custom,
+                  dtype = dtype, chunksize=500)
         
 
 
