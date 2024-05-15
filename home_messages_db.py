@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine, MetaData, text, Table, Column, Float, Integer, String, PrimaryKeyConstraint, select, inspect
 import pandas as pd
 from sqlite3 import Error
+from sqlalchemy.dialects.sqlite import insert
 """
 This file defines the HomeMessagesDB-class to interact with SQLite db.
 
