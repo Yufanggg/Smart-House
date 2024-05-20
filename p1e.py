@@ -1,15 +1,14 @@
 import sys
 import gzip
 import pandas as pd
-from os import listdir
-from os.path import isfile, join
 from sqlalchemy.dialects.sqlite import insert
 from sqlalchemy import create_engine, inspect, Table, Column, Integer, Float, MetaData
+from os import listdir
 
 TABLE_T1_NAME = 'p1e_t1'
 TABLE_T2_NAME = 'p1e_t2'
-TABLE_T1_COLUMNS = ['Electricity imported T1', 'Electricity exported T1']
-TABLE_T2_COLUMNS = ['Electricity imported T2', 'Electricity exported T2']
+TABLE_T1_COLUMNS = ['imported T1', 'exported T1']
+TABLE_T2_COLUMNS = ['imported T2', 'exported T2']
 
 
 def define_table(columns: list, name: str, metadata: MetaData):
@@ -40,19 +39,22 @@ def insert_custom(table, conn, keys, data_iter):
 
 
 def main(db_url: str, filepath: str):
-
     # read the file into pandas
-    df = pd.read_csv(gzip.open(filepath, 'rb'))
+    try:
+        print(filepath)
+        df = pd.read_csv(gzip.open(filepath, 'rb'))
+    except:
+        print('cant read file ' + filepath)
 
     # convert time to timestamp and set as index
     df.index = pd.to_datetime(df['time']).astype(int).div(10 ** 9).astype(int)
+    df = df.drop('time', axis=1)
+    df.columns = ['imported T1', 'imported T2', 'exported T1', 'exported T2']
 
-    # split the tables
     t1 = df[TABLE_T1_COLUMNS]
     t2 = df[TABLE_T2_COLUMNS]
 
-    # creating the tables
-    engine = create_engine('sqlite:///db/pythondqlite.db')
+    engine = create_engine('sqlite:///' + db_url)
     metadata = MetaData()
 
     if not inspect(engine).has_table(TABLE_T1_NAME):
@@ -66,6 +68,7 @@ def main(db_url: str, filepath: str):
         metadata.create_all(engine)
 
     with engine.connect() as conn:
+
         t1.to_sql(name=TABLE_T1_NAME, con=conn, if_exists="replace", method=insert_custom)
         t2.to_sql(name=TABLE_T2_NAME, con=conn, if_exists="replace", method=insert_custom)
 
@@ -96,4 +99,7 @@ Options:
         main(sys.argv[2], sys.argv[3])
 
     if sys.argv[1] == '-r':
-        pass
+        db_url = 'db/pythondqlite.db'
+        dir_path = 'data/P1e/'
+        for filepath in listdir(dir_path):
+            main(db_url, dir_path + filepath)
