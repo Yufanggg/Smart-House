@@ -3,3 +3,4 @@ db
 venv
 .DS_Store
 db/pythondqlite.db
+__pycache__

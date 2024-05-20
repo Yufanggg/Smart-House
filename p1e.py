@@ -1,41 +1,12 @@
 import sys
 import gzip
 import pandas as pd
-from sqlalchemy.dialects.sqlite import insert
-from sqlalchemy import create_engine, inspect, Table, Column, Integer, Float, MetaData
+from sqlalchemy import Column, Integer, Float
 from os import listdir
+from home_messages_db import HomeMessagesDB
 
 TABLE_T1_NAME = 'p1e_t1'
 TABLE_T2_NAME = 'p1e_t2'
-TABLE_T1_COLUMNS = ['imported T1', 'exported T1']
-TABLE_T2_COLUMNS = ['imported T2', 'exported T2']
-
-
-def define_table(columns: list, name: str, metadata: MetaData):
-    Table(name, metadata,
-          Column('time', Integer(), primary_key=True),
-          Column(columns[0], Float(), nullable=True),
-          Column(columns[1], Float(), nullable=True),
-          )
-    return metadata
-
-
-def insert_custom(table, conn, keys, data_iter):
-    inserts = []
-    for row in data_iter:
-        # skip the empty rows
-        if row[1] is None:
-            continue
-        inserts.append(dict(zip(keys, row)))
-    stmt = (
-        insert(table.table)
-        .values(inserts)
-    )
-
-    stmt = stmt.on_conflict_do_nothing()
-    result = conn.execute(stmt)
-    print(f"inserted rows {result.rowcount}")
-    return result.rowcount
 
 
 def main(db_url: str, filepath: str):
@@ -51,26 +22,24 @@ def main(db_url: str, filepath: str):
     df = df.drop('time', axis=1)
     df.columns = ['imported T1', 'imported T2', 'exported T1', 'exported T2']
 
-    t1 = df[TABLE_T1_COLUMNS]
-    t2 = df[TABLE_T2_COLUMNS]
+    mydb = HomeMessagesDB('sqlite:///' + db_url)
+    mydb.create_table(TABLE_T1_NAME, [
+        Column('time', Integer(), primary_key=True),
+        Column('imported T1', Float(), nullable=True),
+        Column('exported T1', Float(), nullable=True),
+    ])
 
-    engine = create_engine('sqlite:///' + db_url)
-    metadata = MetaData()
+    mydb.create_table(TABLE_T2_NAME, [
+        Column('time', Integer(), primary_key=True),
+        Column('imported T2', Float(), nullable=True),
+        Column('exported T2', Float(), nullable=True),
+    ])
 
-    if not inspect(engine).has_table(TABLE_T1_NAME):
-        print(f"Creating {TABLE_T1_NAME} table")
-        metadata = define_table(TABLE_T1_COLUMNS, TABLE_T1_NAME, metadata)
-        metadata.create_all(engine)
+    t1 = df[['imported T1', 'exported T1']]
+    t2 = df[['imported T2', 'exported T2']]
 
-    if not inspect(engine).has_table(TABLE_T2_NAME):
-        print(f"Creating {TABLE_T2_NAME} table")
-        metadata = define_table(TABLE_T2_COLUMNS, TABLE_T2_NAME, metadata)
-        metadata.create_all(engine)
-
-    with engine.connect() as conn:
-
-        t1.to_sql(name=TABLE_T1_NAME, con=conn, if_exists="replace", method=insert_custom)
-        t2.to_sql(name=TABLE_T2_NAME, con=conn, if_exists="replace", method=insert_custom)
+    mydb.insert_df(t1, TABLE_T1_NAME)
+    mydb.insert_df(t2, TABLE_T2_NAME)
 
 
 if __name__ == '__main__':
