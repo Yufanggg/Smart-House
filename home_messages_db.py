@@ -1,12 +1,12 @@
-from sqlalchemy import create_engine, MetaData, text, Table, Column, Float, Integer, String, PrimaryKeyConstraint, select, inspect
+from sqlalchemy import create_engine, MetaData, text, Table, Column, inspect
 import pandas as pd
 from sqlite3 import Error
 from sqlalchemy.dialects.sqlite import insert
+
 """
 This file defines the HomeMessagesDB-class to interact with SQLite db.
 
 TO DO:
-- method to insert data (from df) into db-table
 - error handling
 """
 
@@ -14,7 +14,7 @@ TO DO:
 class HomeMessagesDB:
     def __init__(self, url: str):
         self.url = url
-        self.engine = create_engine(url)   
+        self.engine = create_engine(url)
         self.metadata = MetaData()
         self.metadata.reflect(bind=self.engine)
 
@@ -22,14 +22,14 @@ class HomeMessagesDB:
         """ More informative __repr__. """
         self.metadata.reflect(bind=self.engine)
 
-        preamble = (f"A HomeMessagesDB-class instance. Connected to: {self.url} \n\nTABLES \t\tCOLUMNS\n\n")
+        preamble = f"A HomeMessagesDB-class instance. Connected to: {self.url} \n\nTABLES \t\tCOLUMNS\n\n"
 
         table_info = (
-            "\n".join(f"{i :<10}\t{[column.key for column in self.metadata.tables[i].c]}" for i in self.metadata.tables.keys())
-            )
+            "\n".join(f"{i :<10}\t{[column.key for column in self.metadata.tables[i].c]}" for i in
+                      self.metadata.tables.keys())
+        )
 
-        return preamble+table_info
-
+        return preamble + table_info
 
     def query(self, stmt, rawSQL: bool = False, as_df: bool = False):
         """ 
@@ -47,7 +47,7 @@ class HomeMessagesDB:
         -------
         Data as list of tuples or (if as_df=True) as pd.Dataframe.
         """
-    
+
         if rawSQL:
             with self.engine.connect() as conn:
                 result = conn.execute(text(stmt)).fetchall()
@@ -57,19 +57,23 @@ class HomeMessagesDB:
 
         if as_df:
             return pd.DataFrame(result)
-        else: 
+        else:
             return result
-        
-    def create_table(self, name: str, columns: list, columnTypes: list, primaryKey = None):
+
+    def create_table(self, name: str, columns: list[Column]):
         """
         Define and create table in database.
 
-        Usage: .create_table(name, columns, columnTypes)
+        Usage: .create_table(name, columns)
 
         Params:
         ------
         - name (str): name of to-be-created table
-        - colums (list): list of columns in table (e.g. ['a', 'b'])
+        - colums (list): list of SQLAlchemy columns
+            ex.
+            [
+
+            ]
         - columnTypes (list): list of SQLAlchemy data types (e.g. [Float, String])
         - primaryKey (str): name of column to be labeled as primary key
         """
@@ -79,25 +83,13 @@ class HomeMessagesDB:
 
             else:
                 print(f"Creating {name} table")
-                
-                if primaryKey:
-                    table = Table(
-                        name,
-                        self.metadata,
-                        *[Column(name, type) for name, type in zip(columns, columnTypes)],
-                        PrimaryKeyConstraint(primaryKey)      
-                    )
-                    self.metadata.create_all(self.engine)
-                    self.metadata.reflect(bind=self.engine)
-                
-                else:
-                    table = Table(
-                        name,
-                        self.metadata,
-                        *[Column(name, type) for name, type in zip(columns, columnTypes)]
-                        )
-                    self.metadata.create_all(self.engine)
-                    self.metadata.reflect(bind=self.engine) 
+                Table(
+                    name,
+                    self.metadata,
+                    *columns,
+                )
+                self.metadata.create_all(self.engine)
+                self.metadata.reflect(bind=self.engine)
 
         except Error as e:
             print(e)
@@ -118,20 +110,20 @@ class HomeMessagesDB:
             else:
                 with self.engine.connect() as conn:
                     conn.execute(text(f"DROP TABLE IF EXISTS {name}"))
-                    self.metadata.clear() # seems necessary, otherwise dropped table seems to stick in metadata (https://github.com/sqlalchemy/sqlalchemy/issues/5112)
+                    self.metadata.clear()  # seems necessary, otherwise dropped table seems to stick in metadata (https://github.com/sqlalchemy/sqlalchemy/issues/5112)
                     self.metadata.reflect(bind=self.engine)
 
         except Error as e:
             print(e)
 
-    def insert_df(self, df: pd.DataFrame, table: str, dtype:dict, if_exists: str = 'append'):
+    def insert_df(self, df: pd.DataFrame, table: str, dtype:dict, if_exists: str = 'append', chunk_size: int = 500):
         """
         Inserts pd.dataframe into db-table.
-        
+
         Params:
         ------
         - df (pd.Dataframe): df to be inserted
-        - table (str): name of table 
+        - table (str): name of table
         - if_exists (str): 'fail', 'replace', 'append'
         - dtype (dict): dict of column('key'), SQLAlchemy datatype('value')-pairs (e.g. {'time': Integer()} )
         """
@@ -140,14 +132,10 @@ class HomeMessagesDB:
             stmt = insert(table.table).values(data)
             stmt = stmt.on_conflict_do_nothing()
             result = conn.execute(stmt)
-
+            print(result.rowcount)
             return result.rowcount
-        
+
         with self.engine.connect() as conn:
-            df.to_sql(name = table, con=conn, index=False, 
+            df.to_sql(name = table, con=conn, index=False,
                   if_exists= if_exists, method=insert_custom,
-                  dtype = dtype, chunksize=500)
-        
-
-
-    
+                  dtype = dtype, chunksize=chunk_size)
