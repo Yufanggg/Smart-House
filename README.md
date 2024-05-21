@@ -19,3 +19,12 @@ python3 -m venv venv
 
 `python3 p1e.py -d <dbname> <filename>`
 
+## smartthings.py
+
+* to import all smartthings files:
+
+`python3 smartthings.py -d <db sqlite url> 'smartthings/smartthings.*'`
+
+* to import a specific file (example):
+
+`python3 smartthings.py -d <db sqlite url> 'smartthings/smartthings.202210.tsv.gz`

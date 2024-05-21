@@ -23,7 +23,7 @@ def main(db_url: str, filepath: str):
 
     # insert df into TABLE
     print(f"Inserting {filepath} into {db_url}...")
-    MyDB.insert_df(df=df, table=TABLE_NAME, dtype = dict(zip(TABLE_COLUMNS, TABLE_TYPES)), if_exists='append')
+    MyDB.insert_df(df=df, table=TABLE_NAME, dtype = dict(zip(TABLE_COLUMNS, TABLE_TYPES)), if_exists='append', chunk_size=5000)
 
 
 if __name__ == '__main__':
@@ -52,7 +52,16 @@ Options:
         # initialise MyDB and create table if not exists in db
         # if table exists, will just print "Database already has table" and continue to main()
         MyDB = HomeMessagesDB(sys.argv[2])
-        MyDB.create_table(name=TABLE_NAME, columns=TABLE_COLUMNS, columnTypes=TABLE_TYPES )
+        MyDB.create_table(name=TABLE_NAME, columns=[
+            Column('loc', String(), nullable=True),
+            Column('level', String(), nullable=True),
+            Column('name', String(), nullable=True),
+            Column('time', Integer(), nullable=True),
+            Column('capability', String(), nullable=True),
+            Column('attribute', String(), nullable=True),
+            Column('value', String(), nullable=True),
+            Column('unit', String(), nullable=True),
+        ])
 
         # main function (loading / cleaning / inserting of data into db)
         for file in glob.glob(sys.argv[3]):
