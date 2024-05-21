@@ -36,10 +36,16 @@ def main(db_url: str, filepath: str):
     ])
 
     t1 = df[['imported T1', 'exported T1']]
-    t2 = df[['imported T2', 'exported T2']]
+    mydb.insert_df(t1, TABLE_T1_NAME, {
+        'imported T1': Float(),
+        'exported T1': Float()
+    }, chunk_size=1000)
 
-    mydb.insert_df(t1, TABLE_T1_NAME)
-    mydb.insert_df(t2, TABLE_T2_NAME)
+    t2 = df[['imported T2', 'exported T2']]
+    mydb.insert_df(t2, TABLE_T2_NAME, {
+        'imported T2': Float(),
+        'exported T2': Float()
+    }, chunk_size=1000)
 
 
 if __name__ == '__main__':

@@ -116,18 +116,17 @@ class HomeMessagesDB:
         except Error as e:
             print(e)
 
-    def insert_df(self, df: pd.DataFrame, table: str, if_exists: str = 'append'):
+    def insert_df(self, df: pd.DataFrame, table: str, dtype:dict, if_exists: str = 'append', chunk_size: int = 500):
         """
         Inserts pd.dataframe into db-table.
-        
+
         Params:
         ------
         - df (pd.Dataframe): df to be inserted
-        - table (str): name of table 
+        - table (str): name of table
         - if_exists (str): 'fail', 'replace', 'append'
         - dtype (dict): dict of column('key'), SQLAlchemy datatype('value')-pairs (e.g. {'time': Integer()} )
         """
-
         def insert_custom(table, conn, keys, data_iter):
             data = [dict(zip(keys, row)) for row in data_iter]
             stmt = insert(table.table).values(data)
@@ -137,4 +136,6 @@ class HomeMessagesDB:
             return result.rowcount
 
         with self.engine.connect() as conn:
-            df.to_sql(name=table, con=conn, index=False, if_exists=if_exists, method=insert_custom)
+            df.to_sql(name = table, con=conn, index=False,
+                  if_exists= if_exists, method=insert_custom,
+                  dtype = dtype, chunksize=chunk_size)
