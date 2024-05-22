@@ -21,6 +21,9 @@ python3 -m venv venv
 
 ## smartthings.py
 
+### Clean inserting with '-d'
+This filters out non-important data (as defined in COLUMN_COMBINATIONS_TO_REMOVE).
+
 * to import all smartthings files:
 
 `python3 smartthings.py -d <db sqlite url> 'smartthings/smartthings.*'`
@@ -28,3 +31,16 @@ python3 -m venv venv
 * to import a specific file (example):
 
 `python3 smartthings.py -d <db sqlite url> 'smartthings/smartthings.202210.tsv.gz`
+
+### Raw inserting with '--rawinsert'
+Keeps all data and stores it in 1 _RAW table.
+
+* to import all smartthings files:
+
+`python3 smartthings.py --rawinsert <db sqlite url> 'smartthings/smartthings.*'`
+
+* to import a specific file (example):
+
+`python3 smartthings.py --rawinsert <db sqlite url> 'smartthings/smartthings.202210.tsv.gz`
+
+
