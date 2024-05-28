@@ -1,5 +1,4 @@
-# EDS_Group3
-
+# Essentials of Data Science EDS_Group3
 
 ## Installation
 
@@ -18,6 +17,12 @@ python3 -m venv venv
 * to import a specific file: 
 
 `python3 p1e.py -d <dbname> <filename>`
+
+# Essentials of Data Science
+
+### p1g.py tools:
+This tool is to insert the data from './data/P1g/' fold into a database. 
+The database included two variable: *time* and  *total gas used*, which are *Integer* and *Float* type, respectively.
 
 ## smartthings.py
 

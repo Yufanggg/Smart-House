@@ -1,8 +1,7 @@
-from sqlalchemy import create_engine, MetaData, text, Table, Column, inspect
+from sqlalchemy import create_engine, MetaData, text, Table, Column, PrimaryKeyConstraint, inspect
 import pandas as pd
 from sqlite3 import Error
 from sqlalchemy.dialects.sqlite import insert
-
 """
 This file defines the HomeMessagesDB-class to interact with SQLite db.
 
@@ -21,8 +20,7 @@ class HomeMessagesDB:
     def __repr__(self):
         """ More informative __repr__. """
         self.metadata.reflect(bind=self.engine)
-
-        preamble = f"A HomeMessagesDB-class instance. Connected to: {self.url} \n\nTABLES \t\tCOLUMNS\n\n"
+        preamble = (f"A HomeMessagesDB-class instance. Connected to: {self.url} \n\nTABLES \t\tCOLUMNS\n\n")
 
         table_info = (
             "\n".join(f"{i :<10}\t{[column.key for column in self.metadata.tables[i].c]}" for i in
@@ -47,7 +45,6 @@ class HomeMessagesDB:
         -------
         Data as list of tuples or (if as_df=True) as pd.Dataframe.
         """
-
         if rawSQL:
             with self.engine.connect() as conn:
                 result = conn.execute(text(stmt)).fetchall()
@@ -60,20 +57,15 @@ class HomeMessagesDB:
         else:
             return result
 
-    def create_table(self, name: str, columns: list[Column]):
+    def create_table(self, name: str, columns: list, columnTypes: list, primaryKey: str):
         """
         Define and create table in database.
 
-        Usage: .create_table(name, columns)
-
+        Usage: .create_table(name, columns, columnTypes)
         Params:
         ------
         - name (str): name of to-be-created table
-        - colums (list): list of SQLAlchemy columns
-            ex.
-            [
-
-            ]
+        - colums (list): list of columns in table (e.g. ['a', 'b'])
         - columnTypes (list): list of SQLAlchemy data types (e.g. [Float, String])
         - primaryKey (str): name of column to be labeled as primary key
         """
@@ -83,10 +75,12 @@ class HomeMessagesDB:
 
             else:
                 print(f"Creating {name} table")
-                Table(
+
+                table = Table(
                     name,
                     self.metadata,
-                    *columns,
+                    *[Column(name, type) for name, type in zip(columns, columnTypes)],
+                    PrimaryKeyConstraint(primaryKey)
                 )
                 self.metadata.create_all(self.engine)
                 self.metadata.reflect(bind=self.engine)
@@ -116,10 +110,10 @@ class HomeMessagesDB:
         except Error as e:
             print(e)
 
-    def insert_df(self, df: pd.DataFrame, table: str, dtype:dict, if_exists: str = 'append', chunk_size: int = 500):
+    def insert_df(self, df: pd.DataFrame, table: str, dtype: dict, if_exists: str = 'append'):
         """
         Inserts pd.dataframe into db-table.
-
+        
         Params:
         ------
         - df (pd.Dataframe): df to be inserted
@@ -127,15 +121,16 @@ class HomeMessagesDB:
         - if_exists (str): 'fail', 'replace', 'append'
         - dtype (dict): dict of column('key'), SQLAlchemy datatype('value')-pairs (e.g. {'time': Integer()} )
         """
+
         def insert_custom(table, conn, keys, data_iter):
             data = [dict(zip(keys, row)) for row in data_iter]
             stmt = insert(table.table).values(data)
             stmt = stmt.on_conflict_do_nothing()
             result = conn.execute(stmt)
-            print(result.rowcount)
+
             return result.rowcount
 
         with self.engine.connect() as conn:
-            df.to_sql(name = table, con=conn, index=False,
-                  if_exists= if_exists, method=insert_custom,
-                  dtype = dtype, chunksize=chunk_size)
+            df.to_sql(name=table, con=conn, index=False,
+                      if_exists=if_exists, method=insert_custom,
+                      dtype=dtype, chunksize=500)
