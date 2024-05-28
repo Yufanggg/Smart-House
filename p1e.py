@@ -1,12 +1,11 @@
 import sys
 import gzip
 import pandas as pd
-from sqlalchemy import Column, Integer, Float
+from sqlalchemy import Integer, Float
 from os import listdir
 from home_messages_db import HomeMessagesDB
-
-TABLE_T1_NAME = 'p1e_t1'
-TABLE_T2_NAME = 'p1e_t2'
+from models import Pe1T1, Pe1T2
+from sqlalchemy import inspect
 
 
 def main(db_url: str, filepath: str):
@@ -18,31 +17,28 @@ def main(db_url: str, filepath: str):
         print('cant read file ' + filepath)
 
     # convert time to timestamp and set as index
-    df.index = pd.to_datetime(df['time']).astype(int).div(10 ** 9).astype(int)
-    df = df.drop('time', axis=1)
-    df.columns = ['imported T1', 'imported T2', 'exported T1', 'exported T2']
+    df['time'] = pd.to_datetime(df['time']).astype(int).div(10 ** 9).astype(int)
+    df.columns = ['time', 'imported T1', 'imported T2', 'exported T1', 'exported T2']
+    df = df.fillna(0)
 
     mydb = HomeMessagesDB('sqlite:///' + db_url)
-    mydb.create_table(TABLE_T1_NAME, [
-        Column('time', Integer(), primary_key=True),
-        Column('imported T1', Float(), nullable=True),
-        Column('exported T1', Float(), nullable=True),
-    ])
 
-    mydb.create_table(TABLE_T2_NAME, [
-        Column('time', Integer(), primary_key=True),
-        Column('imported T2', Float(), nullable=True),
-        Column('exported T2', Float(), nullable=True),
-    ])
+    if not inspect(mydb.engine).has_table(Pe1T1.__tablename__):
+        Pe1T1.__table__.create(bind=mydb.engine)
 
-    t1 = df[['imported T1', 'exported T1']]
-    mydb.insert_df(t1, TABLE_T1_NAME, {
+    if not inspect(mydb.engine).has_table(Pe1T2.__tablename__):
+        Pe1T2.__table__.create(bind=mydb.engine)
+
+    t1 = df[['time', 'imported T1', 'exported T1']]
+    mydb.insert_df(t1, Pe1T1.__tablename__, {
+        'time': Integer(),
         'imported T1': Float(),
         'exported T1': Float()
     }, chunk_size=1000)
 
-    t2 = df[['imported T2', 'exported T2']]
-    mydb.insert_df(t2, TABLE_T2_NAME, {
+    t2 = df[['time', 'imported T2', 'exported T2']]
+    mydb.insert_df(t2, Pe1T2.__tablename__, {
+        'time': Integer(),
         'imported T2': Float(),
         'exported T2': Float()
     }, chunk_size=1000)

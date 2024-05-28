@@ -2,6 +2,9 @@ from sqlalchemy import create_engine, MetaData, text, Table, Column, inspect
 import pandas as pd
 from sqlite3 import Error
 from sqlalchemy.dialects.sqlite import insert
+from sqlalchemy.orm import sessionmaker
+from typing import Any
+
 
 """
 This file defines the HomeMessagesDB-class to interact with SQLite db.
@@ -30,6 +33,19 @@ class HomeMessagesDB:
         )
 
         return preamble + table_info
+
+    def read_model_df(self, model: Any, filter_stmt: Any) -> pd.DataFrame:
+        """
+        Query a SqlAlchemy model and return it's filtered content in a dataframe
+
+        :param model: sqlAlchemy model
+        :param filter_stmt: sqlAlchemy filter statement
+        :return:
+        """
+        Session = sessionmaker(bind=self.engine)
+        with Session() as session:
+            df = pd.read_sql(session.query(model).filter(filter_stmt).statement, session.bind)
+        return df
 
     def query(self, stmt, rawSQL: bool = False, as_df: bool = False):
         """ 
