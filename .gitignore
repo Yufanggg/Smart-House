@@ -1,2 +1,7 @@
 .idea
 db
+venv
+.DS_Store
+db/pythondqlite.db
+db/chinook.db
+__pycache__
