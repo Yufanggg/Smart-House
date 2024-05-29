@@ -12,36 +12,33 @@ def main(db_url: str, filepath: str):
 
     if os.path.isdir(filepath): # if the filepath is a dictionary, update the filepath
         files = os.listdir(filepath)
-        filepath = [filepath + "\\" + file for file in files] # updated filepath, which is a list
+        filepath = [filepath + "\\" + file for file in files]  # updated filepath, which is a list
 
-        df = [pd.read_csv(gzip.open(file, 'rb'),index_col= False) for file in filepath]
+        df = [pd.read_csv(gzip.open(file, 'rb'), index_col=False) for file in filepath]
 
         # df = pd.read_csv(gzip.open(filepath[0], 'rb'),index_col= False) 
-        
 
-        
         # check whether all dataframe in df has identical columns, name & number
         if all([set(df[0].columns) == set(dataframe.columns) for dataframe in df]):
             df = pd.concat(df)
         else:
             raise ValueError("Sorry, different files have different columns")
-    
+
     else:
         # read the file into pandas
-        df = pd.read_csv(gzip.open(filepath, 'rb'),index_col= False)
+        df = pd.read_csv(gzip.open(filepath, 'rb'), index_col=False)
 
     # convert time to timestamp and set as index
-    df['unixtime'] = pd.to_datetime(df['time']).astype('int64').div(10**9).astype(int)
-    #print(df['time'])
+    df['unixtime'] = pd.to_datetime(df['time']).astype('int64').div(10 ** 9).astype(int)
+    # print(df['time'])
 
     # print(df.head(10))
     # print(df.shape)
 
-    #initalize the db class
+    # initalize the db class
     mydb = HomeMessagesDB(db_url)
     Keys = {"time": String(), "unixtime": Integer(), "Total gas used": Float()}
-    mydb.insert_df(df = df, table = "p1g", dtype = Keys, if_exists = "replace")
-
+    mydb.insert_df(df=df, table="p1g", dtype=Keys, if_exists="replace")
 
 
 if __name__ == '__main__':
