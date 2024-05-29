@@ -22,7 +22,11 @@ python3 -m venv venv
 
 ### p1g.py tools:
 This tool is to insert the data from './data/P1g/' fold into a database. 
-The database included two variable: *time* and  *total gas used*, which are *Integer* and *Float* type, respectively.
+The database included two variable: 
+
+- ***time***: *Integer*
+- ***total gas used***: *Float*
+
 
 ## smartthings.py
 
@@ -49,3 +53,14 @@ Keeps all data and stores it in 1 _RAW table.
 `python3 smartthings.py --rawinsert <db sqlite url> 'smartthings/smartthings.202210.tsv.gz`
 
 
+## openweathermap.py
+
+
+## database.py
+Aim of this tool:
+1. Initialize the database (create the tables) 
+2. Fill the database with the data from the source files.
+
+
+
+It should be described in the README.md file how to initialize the database and how to use all the tools to fill the database with the data from the source files.

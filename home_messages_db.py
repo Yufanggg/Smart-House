@@ -110,7 +110,7 @@ class HomeMessagesDB:
         except Error as e:
             print(e)
 
-    def insert_df(self, df: pd.DataFrame, table: str, dtype: dict, if_exists: str = 'append'):
+    def insert_df(self, df: pd.DataFrame, table: str, dtype: dict, if_exists: str = 'append', type:str = "raw"):
         """
         Inserts pd.dataframe into db-table.
         
@@ -121,7 +121,6 @@ class HomeMessagesDB:
         - if_exists (str): 'fail', 'replace', 'append'
         - dtype (dict): dict of column('key'), SQLAlchemy datatype('value')-pairs (e.g. {'time': Integer()} )
         """
-
         def insert_custom(table, conn, keys, data_iter):
             data = [dict(zip(keys, row)) for row in data_iter]
             stmt = insert(table.table).values(data)
@@ -129,8 +128,11 @@ class HomeMessagesDB:
             result = conn.execute(stmt)
 
             return result.rowcount
-
-        with self.engine.connect() as conn:
-            df.to_sql(name=table, con=conn, index=False,
-                      if_exists=if_exists, method=insert_custom,
-                      dtype=dtype, chunksize=500)
+    
+        if type == "raw":
+            with self.engine.connect() as conn:
+                df.to_sql(name=table, con=conn, index=False,
+                          if_exists=if_exists, method=insert_custom,
+                                                dtype=dtype, chunksize=500)
+        elif type == "clean":
+            pass
