@@ -39,7 +39,7 @@ def main(db_url: str, filepath: str):
     # print(df.shape)
 
     #initalize the db class
-    mydb = HomeMessagesDB('db/pythondqlite.db')
+    mydb = HomeMessagesDB(db_url)
     Keys = {"time": Integer(), "Total gas used": Float()}
     mydb.insert_df(df = df, table = "p1g", dtype = Keys, if_exists = "replace")
 
