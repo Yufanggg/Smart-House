@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 from sqlalchemy import between
 from home_messages_db import HomeMessagesDB
 from functions import create_timestamp, df_timestamp_index
+import openweathermap
+import statistics
 
 
 class ReportElcUsage:
@@ -126,3 +128,9 @@ class ReportElcUsage:
         plt.title('Total Movement ground level')
         plt.tick_params(axis='x', labelrotation = 90)
         plt.show()
+
+    def march_temps(self):
+        openweathermap
+
+    def oct_temps(self):
+        openweathermap
