@@ -38,6 +38,11 @@ class ReportElcUsage:
         # Convert to megawatt per hour
         df['imported T1'] = df['imported T1'] / 1000
         df['imported T2'] = df['imported T2'] / 1000
+        
+        # Rename T1 and T2
+        df = df.replace(to_replace='imported T1', value = 'Low-cost Hours')
+        df = df.replace(to_replace='imported T2', value = 'High-cost Hours')
+       
         return df
 
     def figure1(self):
@@ -47,7 +52,7 @@ class ReportElcUsage:
         # convert to wide format
         df_melted = df.reset_index().melt(
             id_vars='time',
-            value_vars=['imported T1', 'imported T2'],
+            value_vars=['Low-cost Hours', 'High-cost Hours'],
             var_name='Tariff',
             value_name='Total Usage (MWh)'
         )
@@ -56,6 +61,7 @@ class ReportElcUsage:
             y='Total Usage (MWh)', hue='Tariff', data=df_melted)
         plt.ylabel('Total Usage (MWh)')
         plt.title('Total Electricity Consumption')
+        plt.xticks(rotation = 90)
         plt.show()
 
     def figure2(self):
@@ -65,7 +71,7 @@ class ReportElcUsage:
         # convert to wide format
         df_melted = df.reset_index().melt(
             id_vars='time',
-            value_vars=['imported T1', 'imported T2'],
+            value_vars=['Low-cost Hours', 'High-cost Hours'],
             var_name='Tariff',
             value_name='Total Usage (MWh)'
         )
@@ -74,4 +80,5 @@ class ReportElcUsage:
             y='Total Usage (MWh)', hue='Tariff', data=df_melted)
         plt.ylabel('Total Usage (MWh)')
         plt.title('Total Electricity Consumption')
+        plt.xticks(rotation = 90)
         plt.show()
