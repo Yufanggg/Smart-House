@@ -9,6 +9,7 @@ make sure you are using the env:
 
 python3 -m venv venv
 
+
 ## p1e.py
 
 * to import all p1e.py files:
@@ -43,4 +44,10 @@ Keeps all data and stores it in 1 _RAW table.
 
 `python3 smartthings.py --rawinsert <db sqlite url> 'smartthings/smartthings.202210.tsv.gz`
 
+## openweathermap.py
+
+* requirements:
+
+`pip install openmeteo-requests`
+`pip install requests-cache retry-requests numpy pandas`
 
