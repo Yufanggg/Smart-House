@@ -5,8 +5,10 @@ import matplotlib.pyplot as plt
 from sqlalchemy import between
 from home_messages_db import HomeMessagesDB
 from functions import create_timestamp, df_timestamp_index
-import openweathermap
 import statistics
+import datetime
+import calendar
+import numpy as np
 
 
 class ReportElcUsage:
@@ -129,8 +131,101 @@ class ReportElcUsage:
         plt.tick_params(axis='x', labelrotation = 90)
         plt.show()
 
-    def march_temps(self):
-        openweathermap
+    def temps(self, month, name):
+        
+        def chunks(lst, n):
+            """Yield successive n-sized chunks from lst."""
+            for i in range(0, len(lst), n):
+                yield lst[i:i + n]
 
-    def oct_temps(self):
-        openweathermap
+        days_march = list(chunks(month['temperature_2m_°C'], 24))
+        max_temp = list()
+        days = list(range(1,32))
+        for i in days_march:
+            max_temp.append(max(i))
+        df = pd.DataFrame({'Day':days,
+                            'Max Temp':max_temp})
+        
+        sns.lineplot(x = 'Day',y='Max Temp', data = df)
+        plt.ylabel('Temperature °C')
+        plt.title('Max Temperature per Day')
+        plt.show()
+
+        average_temp = statistics.mean(max_temp)
+        print('Average temp in ', name, ': ', average_temp) 
+    
+    def figure3(self):
+        df = self._df_elc(create_timestamp(2022, 4, 1), create_timestamp(2022, 12, 31))
+        sns.set_theme(style="darkgrid")
+        # convert to wide format
+        df_melted = df.reset_index().melt(
+            id_vars='time',
+            value_vars=['imported T1', 'imported T2'],
+            var_name='Tariff',
+            value_name='Total Usage (MWh)'
+        )
+        sns.barplot(
+            x='time',
+            y='Total Usage (MWh)', hue='Tariff', data=df_melted)
+        plt.ylabel('Total Usage (MWh)')
+        plt.title('Total Electricity Consumption')
+        plt.tick_params(axis='x', labelrotation = 90)
+        plt.show()
+
+    def figure4(self):
+        df = self._df_elc(create_timestamp(2024, 1, 1), create_timestamp(2024, 12, 31))
+        sns.set_theme(style="darkgrid")
+        # convert to wide format
+        df_melted = df.reset_index().melt(
+            id_vars='time',
+            value_vars=['imported T1', 'imported T2'],
+            var_name='Tariff',
+            value_name='Total Usage (MWh)'
+        )
+        sns.barplot(
+            x='time',
+            y='Total Usage (MWh)', hue='Tariff', data=df_melted)
+        plt.ylabel('Total Usage (MWh)')
+        plt.title('Total Electricity Consumption')
+        plt.tick_params(axis='x', labelrotation = 90)
+        plt.show()
+    
+    def jan_table(self):
+        t1 = self.MyDB.read_model_df(Pe1T1, between(Pe1T1.time, create_timestamp(2023, 1, 2), create_timestamp(2023, 2, 1)))
+        
+        # Set the timestamp index
+        t1 = df_timestamp_index(t1) 
+        t1 = t1.resample('D').sum()
+        #Separate the data into each week
+        def chunks(lst, n):
+            """Yield successive n-sized chunks from lst."""
+            for i in range(0, len(lst), n):
+                yield lst[i:i + n]
+        
+        weeks_jan = list(chunks(t1, 7))
+        month = []
+        for i in weeks_jan:
+            month.append(i, ignore_index = True)
+        return month
+    
+    def dec_table(self):
+        t1 = self.MyDB.read_model_df(Pe1T1, between(Pe1T1.time, create_timestamp(2023, 12, 2), create_timestamp(2024, 1, 1)))
+        
+        # Set the timestamp index
+        t1 = df_timestamp_index(t1) 
+        t1 = t1.resample('D').sum()
+        #Separate the data into each week
+        def chunks(lst, n):
+            """Yield successive n-sized chunks from lst."""
+            for i in range(0, len(lst), n):
+                yield lst[i:i + n]
+        
+        weeks_dec = list(chunks(t1, 7))
+        days = ['Friday', 'Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday']
+        weekday = pd.DataFrame()
+        for j in range(0,6):
+            for i in weeks_dec:
+                weekday["{}".format(days[j])] = i.index[j]
+        print(weekday)
+
+            
