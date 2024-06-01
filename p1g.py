@@ -8,9 +8,9 @@ import os
 # self-defined class
 from home_messages_db import HomeMessagesDB
 
-def main(db_url: str, filepath: str):
 
-    if os.path.isdir(filepath): # if the filepath is a dictionary, update the filepath
+def main(db_url: str, filepath: str):
+    if os.path.isdir(filepath):  # if the filepath is a dictionary, update the filepath
         files = os.listdir(filepath)
         filepath = [filepath + "\\" + file for file in files]  # updated filepath, which is a list
 
