@@ -3,7 +3,7 @@ import gzip
 import pandas as pd
 from sqlalchemy.dialects.sqlite import insert
 from sqlalchemy import create_engine
-from sqlalchemy import create_engine, inspect, Table, Column, Integer, Float, MetaData
+from sqlalchemy import create_engine, inspect, Table, Column, Integer, Float, MetaData, String
 import os
 # self-defined class
 from home_messages_db import HomeMessagesDB
@@ -25,7 +25,7 @@ from datetime import datetime, date, time
 
 
 
-def main(db_url: str, filepath: str, start: str, end:str):
+def main(db_url: str, start: str, end:str):
 
     cache_session = requests_cache.CachedSession('.cache', expire_after = -1)
     retry_session = retry(cache_session, retries = 5, backoff_factor = 0.2)
@@ -39,9 +39,13 @@ def main(db_url: str, filepath: str, start: str, end:str):
     # Make sure all required weather variables are listed here
     # The order of variables in hourly or daily is important to assign them correctly below
     url = "https://archive-api.open-meteo.com/v1/archive" 
-	params = {"latitude": 52.196835, "longitude": 4.4833946, "start_date": dt_start, "end_date": dt_end, 
-           "hourly": ["temperature_2m", "relative_humidity_2m", "rain", "snowfall", "wind_speed_10m", "wind_direction_10m", "soil_temperature_0_to_7cm"]
-           }
+    params = {
+	"latitude": 52.196835,
+	"longitude": 4.4833946,
+	"start_date": dt_start,
+	"end_date": dt_end,
+    "hourly": ["temperature_2m", "relative_humidity_2m", "rain", "snowfall", "wind_speed_10m", "wind_direction_10m", "soil_temperature_0_to_7cm"]
+    }
     
     responses = openmeteo.weather_api(url, params=params)
     
@@ -54,7 +58,6 @@ def main(db_url: str, filepath: str, start: str, end:str):
     
     # Process hourly data. The order of variables needs to be the same as requested.
     hourly = response.Hourly()
-    hourly_time = hourly.Variables(0).ValuesAsNumpy()
     hourly_temperature_2m = hourly.Variables(0).ValuesAsNumpy()
     hourly_relativehumidity_2m = hourly.Variables(1).ValuesAsNumpy()
     hourly_rain = hourly.Variables(2).ValuesAsNumpy()
@@ -68,7 +71,6 @@ def main(db_url: str, filepath: str, start: str, end:str):
         freq = pd.Timedelta(seconds = hourly.Interval()), 
         inclusive = "left")}
     
-    hourly_data["unixtime"] = hourly_time
     hourly_data["temperature_2m_°C"] = hourly_temperature_2m
     hourly_data["relativehumidity_2m_%"] = hourly_relativehumidity_2m
     hourly_data["rain_mm"] = hourly_rain
@@ -77,11 +79,16 @@ def main(db_url: str, filepath: str, start: str, end:str):
     hourly_data["winddirection_10m_°"] = hourly_winddirection_10m
     hourly_data["soil_temperature_0_to_7cm_°C"] = hourly_soil_temperature_0_to_7cm
     hourly_dataframe = pd.DataFrame(data = hourly_data)
-    print(hourly_dataframe)
+
+    # convert time to timestamp and set as index
+    hourly_dataframe['unixtime'] = pd.to_datetime(hourly_dataframe['date']).astype('int64').div(10**9).astype(int)
+    # print(hourly_dataframe["unixtime"])
 
     #initalize the db class
-    mydb = HomeMessagesDB('db/pythondqlite.db')
-    Keys = {"time": Integer(), "Total gas used": Float()}
+    mydb = HomeMessagesDB(db_url)
+    # mydb = HomeMessagesDB('db/pythondqlite.db')
+    Keys = {"date": String(),"unixtime": Integer(), "temperature_2m_°C": Float(), "relativehumidity_2m": Float(), "rain_mm": Float(), 
+            "snowfall_cm": Float(), "windspeed_10m_km": Float(),"winddirection_10m_°": Float(), "soil_temperature_0_to_7cm_°C": Float()}
     mydb.insert_df(df = hourly_dataframe, table = "openwheatermap", dtype = Keys, if_exists = "replace")
 
 
@@ -98,14 +105,15 @@ if __name__ == '__main__':
         print("  -h, --help    Show this help message")
         print("  -d DBURL insert into the project database (DBURL is a SQLAlchemy database URL)")
         print(" example:")
-        print("p1g.py -d sqlite:///myhome.db P1g-2022-01-01-2022-07-10.csv.gz")
+        print("openweathermap_self.py -d sqlite:///myhome.db 2022-01-01 2024-04-01")
 
     if sys.argv[1] == '-d':
-        if not sys.argv[2] or not sys.argv[3]:
+        if not sys.argv[2] or not sys.argv[3] or not sys.argv[4]:
             print('invalid options, please view -h')
             exit()
+        print(sys.argv[4])
 
-        main(sys.argv[2], sys.argv[3])
+        main(sys.argv[2], sys.argv[3], sys.argv[4])
 
     if sys.argv[1] == '-r':
         pass

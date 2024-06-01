@@ -43,7 +43,7 @@ print(f"Timezone difference to GMT+0 {response.UtcOffsetSeconds()} s") #offset s
 
 # Process hourly data. The order of variables needs to be the same as requested.
 hourly = response.Hourly()
-#hourly_time = hourly.Variables(0).ValuesAsNumpy()
+hourly_time = hourly.Variables(0).ValuesAsNumpy()
 hourly_temperature_2m = hourly.Variables(0).ValuesAsNumpy()
 hourly_relativehumidity_2m = hourly.Variables(1).ValuesAsNumpy()
 hourly_rain = hourly.Variables(2).ValuesAsNumpy()
@@ -59,7 +59,7 @@ hourly_data = {"date": pd.date_range(
 	inclusive = "left"
 )}
 
-#hourly_data["unixtime"] = hourly_time
+hourly_data["unixtime"] = hourly_time
 hourly_data["temperature_2m_°C"] = hourly_temperature_2m
 hourly_data["relativehumidity_2m_%"] = hourly_relativehumidity_2m
 hourly_data["rain_mm"] = hourly_rain
