@@ -3,7 +3,7 @@ import gzip
 import pandas as pd
 from sqlalchemy.dialects.sqlite import insert
 from sqlalchemy import create_engine
-from sqlalchemy import create_engine, inspect, Table, Column, Integer, Float, MetaData, String
+from sqlalchemy import create_engine, inspect, Table, Column, Integer, Float, MetaData, String, DateTime
 import os
 # self-defined class
 from home_messages_db import HomeMessagesDB
@@ -32,6 +32,7 @@ def main(db_url: str, filepath: str):
 
     # convert time to timestamp and set as index
     df['unixtime'] = pd.to_datetime(df['time']).astype('int64').div(10**9).astype(int)
+    #print(df['time'])
 
     # print(df.head(10))
     # print(df.shape)
@@ -57,7 +58,7 @@ if __name__ == '__main__':
         print(" example1:")
         print("p1g.py -d sqlite:///myhome.db P1g-2022-01-01-2022-07-10.csv.gz")
         print(" example2:")
-        print("p1g.py -d sqlite:///myhome.db .\data\P1g ")
+        print("p1g.py -d sqlite:///myhome.db .\data\P1g")
 
     if sys.argv[1] == '-d':
         if not sys.argv[2] or not sys.argv[3]:

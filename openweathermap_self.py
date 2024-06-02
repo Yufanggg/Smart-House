@@ -3,7 +3,7 @@ import gzip
 import pandas as pd
 from sqlalchemy.dialects.sqlite import insert
 from sqlalchemy import create_engine
-from sqlalchemy import create_engine, inspect, Table, Column, Integer, Float, MetaData, String
+from sqlalchemy import create_engine, inspect, Table, Column, Integer, Float, MetaData, DateTime, String
 import os
 # self-defined class
 from home_messages_db import HomeMessagesDB
@@ -87,9 +87,9 @@ def main(db_url: str, start: str, end:str):
     #initalize the db class
     mydb = HomeMessagesDB(db_url)
     # mydb = HomeMessagesDB('db/pythondqlite.db')
-    Keys = {"date": String(),"unixtime": Integer(), "temperature_2m_°C": Float(), "relativehumidity_2m": Float(), "rain_mm": Float(), 
+    Keys = {"date": DateTime(),"unixtime": Integer(), "temperature_2m_°C": Float(), "relativehumidity_2m": Float(), "rain_mm": Float(), 
             "snowfall_cm": Float(), "windspeed_10m_km": Float(),"winddirection_10m_°": Float(), "soil_temperature_0_to_7cm_°C": Float()}
-    mydb.insert_df(df = hourly_dataframe, table = "openwheatermap", dtype = Keys, if_exists = "replace")
+    mydb.insert_df(df = hourly_dataframe, table = "openweathermap", dtype = Keys, if_exists = "replace")
 
 
 
