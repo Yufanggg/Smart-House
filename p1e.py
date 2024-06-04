@@ -6,15 +6,16 @@ from os import listdir
 from home_messages_db import HomeMessagesDB
 from models import Pe1T1, Pe1T2
 from sqlalchemy import inspect
+from pathlib import Path
 
 
-def main(db_url: str, filepath: str):
+def main(db_url: str, filepath: Path):
     # read the file into pandas
     try:
         print(filepath)
-        df = pd.read_csv(gzip.open(filepath, 'rb'))
+        df = pd.read_csv(gzip.open(str(filepath), 'rb'))
     except:
-        print('cant read file ' + filepath)
+        print('cant read file ' + str(filepath))
 
     # convert time to timestamp and set as index
     df['time'] = pd.to_datetime(df['time']).astype(int).div(10 ** 9).astype(int)
@@ -67,10 +68,10 @@ Options:
             print('invalid options, please view -h')
             exit()
 
-        main(sys.argv[2], sys.argv[3])
+        main(sys.argv[2], Path(sys.argv[3]))
 
     if sys.argv[1] == '-r':
-        db_url = 'db/pythondqlite.db'
+        db_url = 'myhome.db'
         dir_path = 'data/P1e/'
         for filepath in listdir(dir_path):
-            main(db_url, dir_path + filepath)
+            main(db_url, Path(dir_path + filepath))

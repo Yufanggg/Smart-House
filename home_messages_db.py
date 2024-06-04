@@ -75,7 +75,7 @@ class HomeMessagesDB:
         else:
             return result
 
-    def create_table(self, name: str, columns: list[Column]):
+    def create_table(self, name: str, columns: list):
         """
         Define and create table in database.
 

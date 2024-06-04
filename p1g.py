@@ -7,16 +7,20 @@ from sqlalchemy import create_engine, inspect, Table, Column, Integer, Float, Me
 import os
 # self-defined class
 from home_messages_db import HomeMessagesDB
+from pathlib import Path
 
 
 def main(db_url: str, filepath: str):
     if os.path.isdir(filepath):  # if the filepath is a dictionary, update the filepath
         files = os.listdir(filepath)
-        filepath = [filepath + "\\" + file for file in files]  # updated filepath, which is a list
+        filepath = [str(Path(filepath + "/" + file)) for file in files]  # updated filepath, which is a list
 
-        df = [pd.read_csv(gzip.open(file, 'rb'), index_col=False) for file in filepath]
-
-        # df = pd.read_csv(gzip.open(filepath[0], 'rb'),index_col= False) 
+        df = []
+        for file in filepath:
+            try:
+                df.append(pd.read_csv(gzip.open(file, 'rb'), index_col=False))
+            except:
+                print("error in file: " + file)
 
         # check whether all dataframe in df has identical columns, name & number
         if all([set(df[0].columns) == set(dataframe.columns) for dataframe in df]):
@@ -55,7 +59,7 @@ if __name__ == '__main__':
         print(" example1:")
         print("p1g.py -d sqlite:///myhome.db P1g-2022-01-01-2022-07-10.csv.gz")
         print(" example2:")
-        print("p1g.py -d sqlite:///myhome.db .\data\P1g")
+        print("p1g.py -d sqlite:///myhome.db ./data/P1g")
 
     if sys.argv[1] == '-d':
         if not sys.argv[2] or not sys.argv[3]:
