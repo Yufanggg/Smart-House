@@ -90,6 +90,7 @@ class HomeMessagesDB:
                 )
                 self.metadata.create_all(self.engine)
                 self.metadata.reflect(bind=self.engine)
+                print(f"{name} table was successfully created")
 
         except Error as e:
             print(e)
@@ -116,7 +117,7 @@ class HomeMessagesDB:
         except Error as e:
             print(e)
 
-    def insert_df(self, df: pd.DataFrame, table: str, dtype:dict, if_exists: str = 'append', chunk_size: int = 500):
+    def insert_df(self, df: pd.DataFrame, table: str, dtype: dict, if_exists: str = 'append', type:str = "raw", chunksize: int = 500):
         """
         Inserts pd.dataframe into db-table.
 
@@ -134,8 +135,11 @@ class HomeMessagesDB:
             result = conn.execute(stmt)
             print(result.rowcount)
             return result.rowcount
-
-        with self.engine.connect() as conn:
-            df.to_sql(name = table, con=conn, index=False,
-                  if_exists= if_exists, method=insert_custom,
-                  dtype = dtype, chunksize=chunk_size)
+    
+        if type == "raw":
+            with self.engine.connect() as conn:
+                df.to_sql(name=table, con=conn, index=False,
+                          if_exists=if_exists, method=insert_custom,
+                                                dtype=dtype, chunksize=chunksize)
+        elif type == "clean":
+            pass
