@@ -51,9 +51,11 @@ Keeps all data and stores it in 1 _RAW table.
 
 `python3 smartthings.py --rawinsert <db sqlite url> 'smartthings/smartthings.202210.tsv.gz`
 
-
 ## openweathermap.py
 
+To store the weather data in the database
+
+`python3 openweathermap.py -d sqlite:///myhome.db 2022-01-01 2024-04-01`
 
 ## database.py
 Aim of this tool:
