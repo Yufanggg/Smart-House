@@ -18,15 +18,14 @@ python3 -m venv venv
 
 `python3 p1e.py -d <dbname> <filename>`
 
-# Essentials of Data Science
-
 ### p1g.py tools:
-This tool is to insert the data from './data/P1g/' fold into a database. 
-The database included two variable: 
+This tool is to insert the data from './data/P1g/' fold into a database.
 
-- ***time***: *Integer*
-- ***total gas used***: *Float*
+`p1g.py -d <dbname> <filename>`
 
+* for example:
+
+`p1g.py -d sqlite:///myhome.db ./data/P1g`
 
 ## smartthings.py
 
