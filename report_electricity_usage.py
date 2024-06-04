@@ -1,8 +1,8 @@
-from models import Pe1T1, Pe1T2
+from models import Pe1T1, Pe1T2, SmartThingsGround
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-from sqlalchemy import between
+from sqlalchemy import and_, between
 from home_messages_db import HomeMessagesDB
 from functions import create_timestamp, df_timestamp_index
 
@@ -74,4 +74,27 @@ class ReportElcUsage:
             y='Total Usage (MWh)', hue='Tariff', data=df_melted)
         plt.ylabel('Total Usage (MWh)')
         plt.title('Total Electricity Consumption')
+        plt.show()
+
+    def figure3(self):
+        df = self.MyDB.read_model_df(SmartThingsGround, and_(
+            SmartThingsGround.attribute == "motion",
+            between(SmartThingsGround.time, create_timestamp(2023, 1, 1), create_timestamp(2023, 12, 31))
+        )
+                                     )
+        df = df_timestamp_index(df)
+        df = df[['value']]
+
+        with pd.option_context("future.no_silent_downcasting", True):
+            df = df.replace(to_replace='active', value=1)
+            df = df.replace(to_replace='inactive', value=0)
+
+        df = df.resample('D').sum()
+
+        sns.set_theme(style="darkgrid")
+        # convert to wide format
+
+        sns.lineplot(x='time', y='value', data=df)
+        plt.ylabel('Motion triggers')
+        plt.title('Total Movement ground level')
         plt.show()
