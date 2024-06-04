@@ -117,7 +117,7 @@ class HomeMessagesDB:
         except Error as e:
             print(e)
 
-    def insert_df(self, df: pd.DataFrame, table: str, dtype: dict, if_exists: str = 'append', type:str = "raw", chunksize: int = 500):
+    def insert_df(self, df: pd.DataFrame, table: str, dtype: dict, if_exists: str = 'append', type:str = "raw", chunk_size: int = 500):
         """
         Inserts pd.dataframe into db-table.
 
@@ -140,6 +140,6 @@ class HomeMessagesDB:
             with self.engine.connect() as conn:
                 df.to_sql(name=table, con=conn, index=False,
                           if_exists=if_exists, method=insert_custom,
-                                                dtype=dtype, chunksize=chunksize)
+                                                dtype=dtype, chunksize=chunk_size)
         elif type == "clean":
             pass
