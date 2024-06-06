@@ -30,3 +30,9 @@ class SmartThingsGround(Base):
     attribute = Column('attribute', String(), nullable=True)
     value = Column('value', String(), nullable=True)
     unit = Column('unit', String(), nullable=True)
+
+class Pg1(Base):
+    __tablename__ = 'p1g'
+    unixtime = Column('unixtime', Integer(), nullable=True)
+    time = Column('time', Integer(), nullable=True, primary_key=True)
+    gas = Column('Total gas used', Float(), nullable=True)
