@@ -1,14 +1,16 @@
-from models import Pe1T1, Pe1T2, SmartThingsGround
+from models import Pe1T1, Pe1T2, SmartThingsGround, Pg1
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sqlalchemy import between
 from home_messages_db import HomeMessagesDB
+import database
 from functions import create_timestamp, df_timestamp_index
 import statistics
 import datetime
 import calendar
 import numpy as np
+import statistics
 
 
 def chunks(lst, n):
@@ -25,7 +27,7 @@ class ReportElcUsage:
 
     def __init__(self):
         self.MyDB = HomeMessagesDB('sqlite:///myhome.db')
-
+    
     def _df_elc(self, start_date, end_date):
         t1 = self.MyDB.read_model_df(
             Pe1T1,
@@ -270,4 +272,35 @@ class ReportElcUsage:
         plt.legend(title='Week Number')
 
         # 6. Show the Plot
+        plt.show()
+
+class ReportGasUsage:
+    """
+    This class is to be called in the report_electricity_usage report
+    goal is to make the report more readable
+    """
+    MyDB = NotImplementedError
+
+    def __init__(self):
+        self.MyDB = HomeMessagesDB('sqlite:///myhome2.db')
+
+    def _df_gas(self, start_date, end_date):
+        df = self.MyDB.read_model_df(
+            Pg1, between(Pg1.unixtime, start_date, end_date))
+        
+        df = df.fillna(0)
+        df = df.set_index('time')
+        df.index = pd.to_datetime(df.index)
+        #Resample on month
+        df = df.resample('ME').sum()
+        return df
+        
+    def figure1(self):
+        df = self._df_gas(create_timestamp(2022, 4, 1), create_timestamp(2024, 4, 1))
+        sns.lineplot(
+            x='time',
+            y='Total gas used', data=df)
+        plt.ylabel('Total Usage (m3)')
+        plt.title('Total Gas Consumption')
+        plt.tick_params(axis='x', labelrotation=90)
         plt.show()
