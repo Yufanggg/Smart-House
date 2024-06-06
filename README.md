@@ -7,7 +7,7 @@
 | Wessel Porschen | s2004267 | [wesselporschen](https://github.com/wesselporschen)             | *    |
 | Yufang Wang     | s3808394 | [Yufanggg](https://github.com/Yufanggg)                         | *    |
 | Bas Ouwehand    | s0216445 | [bouwehand](https://github.com/bouwehand)                       | *    |
-| Kylee Ornstein  | s4177789 | [kylo100](https://github.com/kylo100)                           | *    |
+| Kylee Ornstein  | s4177789 | Kylee Ornstein [kylo100](https://github.com/kylo100)            | *    |
 | Agnes Czech     | s4069811 | [FallenApatheticAngel](https://github.com/FallenApatheticAngel) | *    |
 
 *We request every team member to be graded equally for all of the project.
