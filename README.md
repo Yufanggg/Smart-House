@@ -45,20 +45,20 @@ If no argument is provides (like above), this will initialize a SQLite db at `sq
 
 * to import all p1e.py files:
 
-`python3 p1e.py -r`
+`python p1e.py -r`
 
 * to import a specific file: 
 
-`python3 p1e.py -d <dbname> <filename>`
+`python p1e.py -d <dbname> <filename>`
 
 ### p1g.py
 This tool is to insert the data from './data/P1g/' fold into a database.
 
-`p1g.py -d <dbname> <filename>`
+`python p1g.py -d <dbname> <filename>`
 
 * for example:
 
-`p1g.py -d sqlite:///myhome.db ./data/P1g`
+`python p1g.py -d sqlite:///myhome.db ./data/P1g`
 
 ### smartthings.py
 
@@ -67,22 +67,22 @@ This filters out non-important data (as defined in COLUMN_COMBINATIONS_TO_REMOVE
 
 * to import all smartthings files:
 
-`python3 smartthings.py -d <db sqlite url> 'smartthings/smartthings.*'`
+`python smartthings.py -d <db sqlite url> 'smartthings/smartthings.*'`
 
 * to import a specific file (example):
 
-`python3 smartthings.py -d <db sqlite url> 'smartthings/smartthings.202210.tsv.gz`
+`python smartthings.py -d <db sqlite url> 'smartthings/smartthings.202210.tsv.gz`
 
 #### Raw inserting with '--rawinsert'
 Keeps all data and stores it in 1 _RAW table.
 
 * to import all smartthings files:
 
-`python3 smartthings.py --rawinsert <db sqlite url> 'smartthings/smartthings.*'`
+`python smartthings.py --rawinsert <db sqlite url> 'smartthings/smartthings.*'`
 
 * to import a specific file (example):
 
-`python3 smartthings.py --rawinsert <db sqlite url> 'smartthings/smartthings.202210.tsv.gz`
+`python smartthings.py --rawinsert <db sqlite url> 'smartthings/smartthings.202210.tsv.gz`
 
 ### openweathermap.py
 
@@ -94,6 +94,8 @@ To store the weather data in the database
 Aim of this tool:
 1. Initialize the database (create the tables) 
 2. Fill the database with the data from the source files.
+
+`python databse.py -d sqlite:///myhome.db p1g`
 
 ---
 
