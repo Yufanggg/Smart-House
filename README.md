@@ -33,7 +33,7 @@ The tools are:
 * `smartthings.py`: inserts `smartthings` (smart device) data
 * `openweathermap.py`: Queries and inserts from OpenWeatherMap (Noordwijk, NL)
 
-**Important**: To easily execute the 3 data analysis report notebooks, instead of running all tools separately, you can run the `init.sh` script which executes all tools in one go!
+**Important**: To easily execute 3 of the data analysis report notebooks, instead of running all tools separately, you can run the `init.sh` script which executes the tools in one go!
 
 `chmod u+x init.sh`
 `./init.sh`
@@ -100,3 +100,4 @@ Aim of this tool:
 * report_electricity_usage.ipynb
 * report_temperature_switch.ipynb
 * report_motion_analysis.ipynb
+* report_temperature_difference.ipynb (not executed via 'init.sh')
