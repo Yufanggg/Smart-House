@@ -7,7 +7,7 @@
 | Wessel Porschen | s2004267 | [wesselporschen](https://github.com/wesselporschen)             | *    |
 | Yufang Wang     | s3808394 | [Yufanggg](https://github.com/Yufanggg)                         | *    |
 | Bas Ouwehand    | s0216445 | [bouwehand](https://github.com/bouwehand)                       | *    |
-| Kylee Ornstein  | s4177789 | Kylee Ornstein [kylo100](https://github.com/kylo100)            | *    |
+| Kylee Ornstein  | s4177789 | [kylo100](https://github.com/kylo100)            | *    |
 | Agnes Czech     | s4069811 | [FallenApatheticAngel](https://github.com/FallenApatheticAngel) | *    |
 
 *We request every team member to be graded equally for all of the project.
@@ -33,7 +33,7 @@ The tools are:
 * `smartthings.py`: inserts `smartthings` (smart device) data
 * `openweathermap.py`: Queries and inserts from OpenWeatherMap (Noordwijk, NL)
 
-**Important**: To easily execute 3 of the data analysis report notebooks, instead of running all tools separately, you can run the `init.sh` script which executes the tools in one go!
+**Important**: To easily execute the data analysis report notebooks, instead of running all tools separately, you can run the `init.sh` script which executes the tools in one go!
 
 `chmod u+x init.sh`
 `./init.sh`
@@ -100,4 +100,4 @@ Aim of this tool:
 * report_electricity_usage.ipynb
 * report_temperature_switch.ipynb
 * report_motion_analysis.ipynb
-* report_temperature_difference.ipynb (not executed via `init.sh`)
+* report_temperature_difference.ipynb
