@@ -100,4 +100,4 @@ Aim of this tool:
 * report_electricity_usage.ipynb
 * report_temperature_switch.ipynb
 * report_motion_analysis.ipynb
-* report_temperature_difference.ipynb (not executed via 'init.sh')
+* report_temperature_difference.ipynb (not executed via `init.sh`)
