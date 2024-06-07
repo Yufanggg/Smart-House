@@ -95,6 +95,10 @@ Aim of this tool:
 1. Initialize the database (create the tables) 
 2. Fill the database with the data from the source files.
 
+`python databse.py -d <dbname> <tablename>`
+
+* for example:
+
 `python databse.py -d sqlite:///myhome.db p1g`
 
 ---
