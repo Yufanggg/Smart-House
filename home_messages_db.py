@@ -148,6 +148,7 @@ class HomeMessagesDB:
             stmt = insert(table.table).values(data)
             stmt = stmt.on_conflict_do_nothing()
             result = conn.execute(stmt)
+            print("number of rows newly storted")
             print(result.rowcount)
             return result.rowcount
 

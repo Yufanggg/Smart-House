@@ -32,6 +32,7 @@ The tools are:
 * `p1g.py`: inserts `p1g` (gas usage) data
 * `smartthings.py`: inserts `smartthings` (smart device) data
 * `openweathermap.py`: Queries and inserts from OpenWeatherMap (Noordwijk, NL)
+* `database.py`: Initialize the database (create the tables) 
 
 **Important**: To easily execute the data analysis report notebooks, instead of running all tools separately, you can run the `init.sh` script which executes the tools in one go!
 
@@ -87,7 +88,7 @@ Keeps all data and stores it in 1 _RAW table.
 
 To store the weather data in the database
 
-`python3 openweathermap.py -d sqlite:///myhome.db 2022-01-01 2024-04-01`
+`python openweathermap.py -d sqlite:///myhome.db 2022-01-01 2024-04-01`
 
 ### database.py
 Aim of this tool:
@@ -98,6 +99,6 @@ Aim of this tool:
 
 ## Data Analysis Reports
 * report_electricity_usage.ipynb
-* report_temperature_switch.ipynb
+* report_gas_weather.ipynb
 * report_motion_analysis.ipynb
 * report_temperature_difference.ipynb
